@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+
+    <title>CSV Random Walk Generator</title>
+</head>
+
+<body>
+    <div class="container py-5">
+        <h1 class="fw-light">CSV Generator</h1>
+        <p class="lead text-muted">Generate <a href="https://en.wikipedia.org/wiki/Random_walk" target="_blank">random walk</a> <a href="https://en.wikipedia.org/wiki/Time_series" target="_blank">time series data</a> in <a href="https://en.wikipedia.org/wiki/Comma-separated_values" target="_blank">comma separated value</a> format.</p>
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label for="columns" class="form-label">Columns</label>
+                <input type="number" value="5" min="1" step="1" name="columns" id="columns" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label for="spacing" class="form-label">Seconds spacing</label>
+                <input type="number" value="60" min="1" step="1" name="spacing" id="spacing" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label for="from" class="form-label">From</label>
+                <input type="datetime-local" name="from" id="from" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label for="to" class="form-label">To</label>
+                <input type="datetime-local" name="to" id="to" class="form-control">
+            </div>
+            <div class="col pt-3">
+                <button class="btn btn-success mt-1" onclick="onGenerateClick(false)">Generate + copy to
+                    clipboard</button>
+                <button class="btn btn-outline-success mt-1" onclick="onGenerateClick(true)">Generate + display below
+                    (slow for large datasets)</button>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="output" class="form-label">CSV Output</label>
+            <textarea name="output" id="output" rows="15" class="form-control" readonly style="white-space: pre;"></textarea>
+        </div>
+    </div>
+
+    <script>
+
+        // pre-set the date time pickers
+        let _start = new Date();
+        _start.setUTCHours(0, 0, 0, 0);
+        _start.setUTCDate(1);
+        let _end = new Date(_start);
+        _end.setUTCHours(24, 0, 0, 0);
+        document.getElementById("from").value = _start.toISOString().split('Z')[0];
+        document.getElementById("to").value = _end.toISOString().split('Z')[0];
+        
+
+        function onGenerateClick(display) {
+            let spacingSeconds = document.getElementById("spacing").value;
+            let columnCount = document.getElementById("columns").value;
+            let startStr = document.getElementById("from").value
+            let toStr = document.getElementById("to").value
+            let start = new Date(startStr);
+            let end = new Date(toStr);
+
+            let csv = createCSV(start, end, spacingSeconds, columnCount);
+            if (display) {
+                document.getElementById("output").value = csv;
+            } else {
+                navigator.clipboard.writeText(csv);
+                alert("Copied to clipboard");
+            }
+        }
+        function createCSV(start = new Date(), end = new Date(), spacingSeconds = 60, columnCount = 1) {
+
+            // log what's being created to console
+            console.log(`Creating a timeseries CSV file...
+            columns: ${columnCount.toLocaleString()}
+            from:    ${start.toISOString()}
+            to:      ${end.toISOString()}
+            spacing: ${spacingSeconds.toLocaleString()} seconds`)
+
+            let csv = '';
+            const columns = ['timestamp'];
+            const values = []; // array to track the random walk
+            for (let i = 0; i < +columnCount; i++) {
+                columns.push(`Series ${i + 1}`);
+                values.push(0);
+            }
+            csv += `${columns.join(',')}\r\n`;
+            while (start.valueOf() < end.valueOf()) {
+                const timestamp = new Date(start);
+                const cells = [];
+                cells.push(timestamp.toISOString());
+                for (let i = 0; i < +columnCount; i++) {
+                    const value = values[i];
+                    cells.push(value.toPrecision(5));
+                    values[i] += Math.random() - 0.5;
+                }
+                csv += `${cells.join(',')}\r\n`;
+                start.setUTCSeconds(start.getUTCSeconds() + +spacingSeconds);
+            }
+            return csv;
+        }
+    </script>
+
+</body>
+
+</html>
