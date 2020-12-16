@@ -7,17 +7,22 @@
   
   <title>Backpressuring in streams | Side Projects &amp; Tech.</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Creating files larger than RAMIn a previous post I included code and a webpage to create random-walk time-series CSV files. Those code samples are only capable of creating CSV files that fit in memor">
+  <meta name="description" content="GitHub GistUsed to create Random Walk, time-series CSV files larger than the available RAM. Creating files larger than RAMIn a previous post I included code and a webpage to create random-walk time-s">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Backpressuring in streams">
 <meta property="og:url" content="https://tomhumphries.github.io/2020/12/15/csv-backpressure/index.html">
 <meta property="og:site_name" content="Side Projects &amp; Tech.">
-<meta property="og:description" content="Creating files larger than RAMIn a previous post I included code and a webpage to create random-walk time-series CSV files. Those code samples are only capable of creating CSV files that fit in memor">
+<meta property="og:description" content="GitHub GistUsed to create Random Walk, time-series CSV files larger than the available RAM. Creating files larger than RAMIn a previous post I included code and a webpage to create random-walk time-s">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://tomhumphries.github.io/images/pipe-pressure.jpg">
 <meta property="article:published_time" content="2020-12-15T00:00:00.000Z">
-<meta property="article:modified_time" content="2020-12-16T08:37:46.148Z">
+<meta property="article:modified_time" content="2020-12-16T09:03:26.009Z">
 <meta property="article:author" content="Thomas Humphries">
+<meta property="article:tag" content="csv">
+<meta property="article:tag" content="data">
+<meta property="article:tag" content="nodejs">
+<meta property="article:tag" content="backpressure">
+<meta property="article:tag" content="streams">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://tomhumphries.github.io/images/pipe-pressure.jpg">
   
@@ -93,11 +98,12 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p><img src="/images/pipe-pressure.jpg" alt="Photo by Emma Steinhobel, emsteinhobel.com"></p>
+<h2 id="GitHub-Gist"><a href="#GitHub-Gist" class="headerlink" title="GitHub Gist"></a><a target="_blank" rel="noopener" href="https://gist.github.com/TomHumphries/bd2ff018dc9904e96f37b496b5cf1d89#file-make-csv-backpressure-js">GitHub Gist</a></h2><p>Used to create <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Random_walk">Random Walk</a>, time-series CSV files larger than the available RAM.</p>
 <h2 id="Creating-files-larger-than-RAM"><a href="#Creating-files-larger-than-RAM" class="headerlink" title="Creating files larger than RAM"></a>Creating files larger than RAM</h2><p>In a <a href="/2020/12/11/csv-generator">previous post</a> I included code and <a href="/static/csv-generator.html">a webpage</a> to create random-walk time-series CSV files. <a target="_blank" rel="noopener" href="https://gist.github.com/TomHumphries/bd2ff018dc9904e96f37b496b5cf1d89#file-make-csv-js">Those code samples</a> are only capable of creating CSV files that fit in memory; that is to say if you have 4 GB of RAM you will only be able to create CSV files less than 4 GB in size (after accounting for the operating system and other processes). </p>
 <h2 id="Backpressuring-in-Node-js-streams"><a href="#Backpressuring-in-Node-js-streams" class="headerlink" title="Backpressuring in Node.js streams"></a>Backpressuring in Node.js streams</h2><p>Node.js streams can account for this build-up of data that can occur in streams using a system called <a target="_blank" rel="noopener" href="https://nodejs.org/en/docs/guides/backpressuring-in-streams/">backpressuring</a>. This allows a stream to send a “slow down” request to the source of the data.<br>By modifying the original CSV generation script, the code will only generate values as quickly as the machine can write them to disk. The key line is the pausing of the stream:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; if false, there is backpressure from the stream - stop sending new data</span><br><span class="line">let ok &#x3D; writeStream.write(&#96;$&#123;cells.join(&#39;,&#39;)&#125;\r\n&#96;,);</span><br><span class="line">if (ok) &#123;</span><br><span class="line">    return write();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>if the <code>writeStream.write()</code> returns <code>false</code>, then the write buffer is indicating a data build-up and would like the stream to be paused so it can “catch up”.</p>
-<h2 id="Usefulness"><a href="#Usefulness" class="headerlink" title="Usefulness"></a>Usefulness</h2><p><a target="_blank" rel="noopener" href="https://gist.github.com/TomHumphries/bd2ff018dc9904e96f37b496b5cf1d89#file-make-csv-backpressure-js">This script</a> allows the creation sample CSV files any size - much larger than the RAM available on the computer running it. This is useful for creating large CSV files to stress-test programs that process files larger than the memory available.</p>
+<h2 id="Usefulness-of-the-script"><a href="#Usefulness-of-the-script" class="headerlink" title="Usefulness of the script"></a>Usefulness of <a target="_blank" rel="noopener" href="https://gist.github.com/TomHumphries/bd2ff018dc9904e96f37b496b5cf1d89#file-make-csv-backpressure-js">the script</a></h2><p><a target="_blank" rel="noopener" href="https://gist.github.com/TomHumphries/bd2ff018dc9904e96f37b496b5cf1d89#file-make-csv-backpressure-js">This script</a> allows the creation sample CSV files any size - much larger than the RAM available on the computer running it. This is useful for creating large CSV files to stress-test programs that process files larger than the memory available.</p>
 
       
     </div>
@@ -105,6 +111,8 @@
       <a data-url="https://tomhumphries.github.io/2020/12/15/csv-backpressure/" data-id="ckir52pje0000ggso7fpbefeh" class="article-share-link">Share</a>
       
       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/backpressure/" rel="tag">backpressure</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/csv/" rel="tag">csv</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/data/" rel="tag">data</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nodejs/" rel="tag">nodejs</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/streams/" rel="tag">streams</a></li></ul>
+
     </footer>
   </div>
   
@@ -130,7 +138,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/code/">code</a></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/3D-printing/">3D printing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/code/">code</a></li></ul>
     </div>
   </div>
 
@@ -140,7 +148,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/csv/" rel="tag">csv</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/data/" rel="tag">data</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/3D-printing/" rel="tag">3D printing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/backpressure/" rel="tag">backpressure</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/christmas/" rel="tag">christmas</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csv/" rel="tag">csv</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/data/" rel="tag">data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iterative-design/" rel="tag">iterative design</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nodejs/" rel="tag">nodejs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/streams/" rel="tag">streams</a></li></ul>
     </div>
   </div>
 
@@ -150,7 +158,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/csv/" style="font-size: 10px;">csv</a> <a href="/tags/data/" style="font-size: 10px;">data</a>
+      <a href="/tags/3D-printing/" style="font-size: 10px;">3D printing</a> <a href="/tags/backpressure/" style="font-size: 10px;">backpressure</a> <a href="/tags/christmas/" style="font-size: 10px;">christmas</a> <a href="/tags/csv/" style="font-size: 20px;">csv</a> <a href="/tags/data/" style="font-size: 20px;">data</a> <a href="/tags/iterative-design/" style="font-size: 10px;">iterative design</a> <a href="/tags/nodejs/" style="font-size: 10px;">nodejs</a> <a href="/tags/streams/" style="font-size: 10px;">streams</a>
     </div>
   </div>
 
@@ -177,6 +185,10 @@
         
           <li>
             <a href="/2020/12/11/csv-generator/">CSV Random Walk Generator</a>
+          </li>
+        
+          <li>
+            <a href="/2020/12/05/printing-light-clips/">3D Printing Light Clips</a>
           </li>
         
       </ul>
