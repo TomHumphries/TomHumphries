@@ -66,6 +66,48 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-csv-backpressure" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/12/15/csv-backpressure/" class="article-date">
+  <time datetime="2020-12-15T00:00:00.000Z" itemprop="datePublished">2020-12-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/12/15/csv-backpressure/">Backpressuring in streams</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><img src="/images/pipe-pressure.jpg" alt="Photo by Emma Steinhobel, emsteinhobel.com"></p>
+<h2 id="Creating-files-larger-than-RAM"><a href="#Creating-files-larger-than-RAM" class="headerlink" title="Creating files larger than RAM"></a>Creating files larger than RAM</h2><p>In a <a href="/2020/12/11/csv-generator">previous post</a> I included code and <a href="/static/csv-generator.html">a webpage</a> to create random-walk time-series CSV files. <a target="_blank" rel="noopener" href="https://gist.github.com/TomHumphries/bd2ff018dc9904e96f37b496b5cf1d89#file-make-csv-js">Those code samples</a> are only capable of creating CSV files that fit in memory; that is to say if you have 4 GB of RAM you will only be able to create CSV files less than 4 GB in size (after accounting for the operating system and other processes). </p>
+<h2 id="Backpressuring-in-Node-js-streams"><a href="#Backpressuring-in-Node-js-streams" class="headerlink" title="Backpressuring in Node.js streams"></a>Backpressuring in Node.js streams</h2><p>Node.js streams can account for this build-up of data that can occur in streams using a system called <a target="_blank" rel="noopener" href="https://nodejs.org/en/docs/guides/backpressuring-in-streams/">backpressuring</a>. This allows a stream to send a “slow down” request to the source of the data.<br>By modifying the original CSV generation script, the code will only generate values as quickly as the machine can write them to disk. The key line is the pausing of the stream:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; if false, there is backpressure from the stream - stop sending new data</span><br><span class="line">let ok &#x3D; writeStream.write(&#96;$&#123;cells.join(&#39;,&#39;)&#125;\r\n&#96;,);</span><br><span class="line">if (ok) &#123;</span><br><span class="line">    return write();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>if the <code>writeStream.write()</code> returns <code>false</code>, then the write buffer is indicating a data build-up and would like the stream to be paused so it can “catch up”.</p>
+<h2 id="Usefulness"><a href="#Usefulness" class="headerlink" title="Usefulness"></a>Usefulness</h2><p><a target="_blank" rel="noopener" href="https://gist.github.com/TomHumphries/bd2ff018dc9904e96f37b496b5cf1d89#file-make-csv-backpressure-js">This script</a> allows the creation sample CSV files any size - much larger than the RAM available on the computer running it. This is useful for creating large CSV files to stress-test programs that process files larger than the memory available.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://tomhumphries.github.io/2020/12/15/csv-backpressure/" data-id="ckir52pje0000ggso7fpbefeh" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-csv-generator" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2020/12/11/csv-generator/" class="article-date">
@@ -162,6 +204,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2020/12/15/csv-backpressure/">Backpressuring in streams</a>
+          </li>
         
           <li>
             <a href="/2020/12/11/csv-generator/">CSV Random Walk Generator</a>
